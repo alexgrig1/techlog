@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import sqlite3
 from tkinter import messagebox
 import psutil
@@ -68,7 +69,6 @@ def set_desktop_background(image_file):
                                                os.path.abspath(image_file), 0)
 
 
-
 def set_mouse_speed(speed):
     user32 = ctypes.windll.user32
     user32.SystemParametersInfoW(SPI_SETMOUSESPEED, 0, speed,
@@ -76,14 +76,17 @@ def set_mouse_speed(speed):
 
 
 def on_mouse_speed_change(value):
-    set_mouse_speed(int(value))
+    speed = int(float(value))
+    set_mouse_speed(speed)
 
 
 def create_system_tray_icon(icon_image_path, widget_manager_window, app):
+    widget_manager_window.iconify()
+
     def show_widget_manager(icon, item):
         icon.stop()
+        # app.withdraw()
         widget_manager_window.deiconify()
-        app.withdraw()
 
     image = Image.open(icon_image_path)
     icon = pystray.Icon("widget_manager")
@@ -115,8 +118,19 @@ def show_main_window(user_id, time_remaining, app):
         app.deiconify()  # Show the login window
 
     def close_widget_manager_window():
-        create_system_tray_icon('V:\Alexandros\sxolh\icon.png',
+        create_system_tray_icon('C:/Users/user/Pictures/john_lemon.png',
                                 widget_manager_window, app)
+
+    # Gui For themes
+    def change_theme(theme):
+        global style
+        style.theme_use(theme)
+
+    global style
+    themes = ttk.Style().theme_names()
+
+    theme_variable = tk.StringVar()
+    theme_variable.set(themes[0])
 
     # Mouse Sensitivity window
     mouse_sensitivity_window = tk.Toplevel()
@@ -128,14 +142,14 @@ def show_main_window(user_id, time_remaining, app):
         True)  # Remove window decorations and taskbar entry
 
     # Create a draggable frame inside the Mouse Sensitivity window
-    draggable_frame = tk.Frame(mouse_sensitivity_window)
+    draggable_frame = ttk.Frame(mouse_sensitivity_window)
     draggable_frame.pack()
     draggable_frame.bind('<B1-Motion>', lambda event: on_window_drag(event,
                                                                      mouse_sensitivity_window))
 
-    mouse_speed_label = tk.Label(draggable_frame, text="Mouse Speed")
+    mouse_speed_label = ttk.Label(draggable_frame, text="Mouse Speed")
     mouse_speed_label.pack()
-    mouse_speed_slider = tk.Scale(draggable_frame, from_=1, to=20,
+    mouse_speed_slider = ttk.Scale(draggable_frame, from_=1, to=20,
                                   orient="horizontal", length=200,
                                   command=on_mouse_speed_change)
     mouse_speed_slider.set(10)
@@ -149,7 +163,7 @@ def show_main_window(user_id, time_remaining, app):
                          do_nothing)
     clock_usage.overrideredirect(True)
 
-    clock_label = tk.Label(clock_usage, bg='magenta', font=("Arial", 16))
+    clock_label = ttk.Label(clock_usage, font=("Arial", 16))
     clock_label.pack()
 
     clock_usage.bind('<B1-Motion>',
@@ -171,7 +185,7 @@ def show_main_window(user_id, time_remaining, app):
     time_remaining_label.pack()
 
     cpu_ram_gpu_usage_var = tk.StringVar()
-    cpu_ram_gpu_usage_label = tk.Label(hardware_usage_window,
+    cpu_ram_gpu_usage_label = ttk.Label(hardware_usage_window,
                                        textvariable=cpu_ram_gpu_usage_var)
     cpu_ram_gpu_usage_label.pack()
 
@@ -219,39 +233,48 @@ def show_main_window(user_id, time_remaining, app):
         else:
             clock_usage.withdraw()
 
-    hardware_usage_checkbutton = tk.Checkbutton(widget_manager_window,
+    hardware_usage_checkbutton = ttk.Checkbutton(widget_manager_window,
                                                 text="Hardware Usage",
                                                 variable=hardware_usage_var,
                                                 command=toggle_hardware_usage_window)
     hardware_usage_checkbutton.grid(row=0, column=0)
 
-    mouse_sensitivity_checkbutton = tk.Checkbutton(widget_manager_window,
+    mouse_sensitivity_checkbutton = ttk.Checkbutton(widget_manager_window,
                                                    text="Mouse Sensitivity",
                                                    variable=mouse_sensitivity_var,
                                                    command=toggle_mouse_sensitivity_window)
     mouse_sensitivity_checkbutton.grid(row=1, column=0)
 
-    clock_checkbutton = tk.Checkbutton(widget_manager_window,
+    clock_checkbutton = ttk.Checkbutton(widget_manager_window,
                                        text="Clock",
                                        variable=clock_var,
                                        command=toggle_clock)
     clock_checkbutton.grid(row=2, column=0)
 
     # Choose background
-    background_button = tk.Button(widget_manager_window,
+    background_button = ttk.Button(widget_manager_window,
                                   text="Choose Your Desktop",
                                   command=browseFiles
                                   )
-    background_button.grid(column=4, row=0)
+    background_button.grid(row=3, column=0)
+
+    # Change themes
+    theme_label = ttk.Label(widget_manager_window, text="Select Theme:")
+    theme_label.grid(row=0, column=1)
+    theme_dropdown = ttk.OptionMenu(widget_manager_window, theme_variable,
+                                   *themes, command=change_theme)
+    theme_dropdown.grid(row=1, column=1)
+
+    style = ttk.Style()
 
     def update_clock():
         current_time = datetime.now().strftime("%H:%M:%S")
         clock_label.config(text=current_time)
         widget_manager_window.after(1000, update_clock)
 
-    logout_button = tk.Button(widget_manager_window, text="Logout",
+    logout_button = ttk.Button(widget_manager_window, text="Logout",
                               command=show_login_window)
-    logout_button.grid(row=5, column=0)
+    logout_button.grid(row=6, column=0)
 
     # Close all widget windows when the main application is closed
     app.protocol("WM_DELETE_WINDOW", app.quit)
