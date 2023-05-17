@@ -218,10 +218,9 @@ def show_main_window(user_id, time_remaining, app):
 
     def update_cpu_ram_usage():
         cpu_percent = psutil.cpu_percent()
-        gpu_percent = psutil.sensors_battery().percent
         ram_percent = psutil.virtual_memory().percent
         cpu_ram_gpu_usage_var.set(
-            f"CPU: {cpu_percent}% | RAM: {ram_percent}% | GPU: {gpu_percent}%")
+            f"CPU: {cpu_percent}% | RAM: {ram_percent}% ")
         hardware_usage_window.after(1000, update_cpu_ram_usage)
 
     update_cpu_ram_usage()
