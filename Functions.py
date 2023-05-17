@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import sqlite3
 from tkinter import messagebox
+from tkinter import colorchooser
 import psutil
 import ctypes
 import pystray
@@ -41,6 +42,11 @@ def login(username_entry, password_entry, app):
     else:
         messagebox.showerror("Login failed", "Incorrect username or password")
 
+#Choose Color
+def color_change(window):
+    color = colorchooser.askcolor()
+    colorname = color[1]
+    window.configure(background=colorname)
 
 # Set Backgrounds
 def browseFiles():
@@ -187,6 +193,9 @@ def show_main_window(user_id, time_remaining, app):
 
     clock_label = ttk.Label(clock_usage, font=("Arial", 16))
     clock_label.pack()
+
+    # Chage Color with right-clck
+    clock_usage.bind('<Button-3>', lambda event: color_change(clock_label))
 
     clock_usage.bind('<B1-Motion>',
                      lambda event: on_window_drag(event,
