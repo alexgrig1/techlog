@@ -4,7 +4,7 @@ from tkinter import messagebox
 import psutil
 import ctypes
 import pystray
-from PIL import Image
+from PIL import Image, ImageDraw, ImageTk, ImageFont
 
 SPI_SETMOUSESPEED = 0x0071
 SPIF_UPDATEINIFILE = 0x01
@@ -46,19 +46,45 @@ def on_mouse_speed_change(value):
     set_mouse_speed(int(value))
 
 
-def create_system_tray_icon(icon_image_path, widget_manager_window, app):
-    def show_widget_manager(icon, item):
+def create_system_tray_icon( widget_manager_window, app):
+    # Set the font for the widget text
+    font = ImageFont.truetype('arial.ttf', 12)
+
+    # Set the widget text colors
+    text_color = (255, 255, 255)
+    
+    # Create the tray icon image
+    image = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw.text((0, 0), 'W', font=font, fill=text_color)
+
+    # Create the tray icon
+    icon = pystray.Icon('widget_icon', image, 'Widgets')
+    icon.visible = False
+    
+    # Hide the window
+    widget_manager_window.withdraw()
+    
+    # Define a function to restore the window when the tray icon is clicked
+    def restore_window(icon, item):
+        # Show the window
+        widget_manager_window.deiconify() 
+
+        # Remove the tray icon
         icon.stop()
-        widget_manager_window.deiconify()
-        app.withdraw()
 
-    image = Image.open(icon_image_path)
-    icon = pystray.Icon("widget_manager")
-    icon.menu = pystray.Menu(pystray.MenuItem('Show Widget Manager', show_widget_manager),
-                             pystray.MenuItem('Exit', app.quit))
-    icon.icon = image
+    #Deiconify the app (!bug runs without an icon)
+    def exit_app():
+        icon.stop()
+        widget_manager_window.quit()
+        app.quit()
+
+    # Add a menu item to the tray icon to restore the window
+    icon.menu = pystray.Menu(pystray.MenuItem('Show Widget Manager', restore_window),
+                             pystray.MenuItem('Exit', exit_app))
+    
+    # Run the system tray event loop
     icon.run()
-
 
 def on_window_drag(event, window):
     x, y = event.x_root, event.y_root
@@ -80,7 +106,7 @@ def show_main_window(user_id, time_remaining, app):
         app.deiconify()  # Show the login window
 
     def close_widget_manager_window():
-        create_system_tray_icon('V:\Alexandros\sxolh\icon.png', widget_manager_window, app)
+        create_system_tray_icon( widget_manager_window, app)
 
     # Mouse Sensitivity window
     mouse_sensitivity_window = tk.Toplevel()
@@ -100,6 +126,10 @@ def show_main_window(user_id, time_remaining, app):
                                   command=on_mouse_speed_change)
     mouse_speed_slider.set(10)
     mouse_speed_slider.pack()
+ # Widget Manager window
+    widget_manager_window = tk.Toplevel()
+    widget_manager_window.title("Widget Manager")
+    widget_manager_window.protocol("WM_DELETE_WINDOW", close_widget_manager_window)
 
     # Hardware Usage window
     hardware_usage_window = tk.Toplevel()
@@ -128,11 +158,7 @@ def show_main_window(user_id, time_remaining, app):
 
     update_cpu_ram_usage()
 
-    # Widget Manager window
-    widget_manager_window = tk.Toplevel()
-    widget_manager_window.title("Widget Manager")
-    widget_manager_window.protocol("WM_DELETE_WINDOW", close_widget_manager_window)
-
+   
     hardware_usage_var = tk.BooleanVar()
     mouse_sensitivity_var = tk.BooleanVar()
 
@@ -160,8 +186,3 @@ def show_main_window(user_id, time_remaining, app):
 
     logout_button = tk.Button(widget_manager_window, text="Logout", command=show_login_window)
     logout_button.grid(row=3, column=0)
-
-    # Close all widget windows when the main application is closed
-    app.protocol("WM_DELETE_WINDOW", app.quit)
-
-    app.mainloop()
