@@ -51,7 +51,7 @@ def color_change(window):
 
 # Set Backgrounds
 def browseFiles():
-    filename = filedialog.askopenfilename(initialdir="str(Path.home() / "Desktop")",
+    filename = filedialog.askopenfilename(initialdir=str(Path.home() / "Desktop"),
                                           title="Select a File",
                                           filetypes=(("Text files",
                                                       "*.jpg;*.jpeg;*.png;*.gif"),
