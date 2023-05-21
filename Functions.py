@@ -7,6 +7,7 @@ import psutil
 import ctypes
 import pystray
 import os
+from pathlib import Path
 from PIL import Image, ImageDraw, ImageTk, ImageFont
 from datetime import datetime
 from tkinter import filedialog
@@ -50,7 +51,7 @@ def color_change(window):
 
 # Set Backgrounds
 def browseFiles():
-    filename = filedialog.askopenfilename(initialdir="/",
+    filename = filedialog.askopenfilename(initialdir="str(Path.home() / "Desktop")",
                                           title="Select a File",
                                           filetypes=(("Text files",
                                                       "*.jpg;*.jpeg;*.png;*.gif"),
