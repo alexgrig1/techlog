@@ -225,12 +225,25 @@ def show_main_window(user_id, time_remaining, app):
                                     textvariable=time_remaining_var)
     time_remaining_label.pack()
 
+    def update_database(value):
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+
+        # Perform the necessary database update based on your requirements
+        cursor.execute(
+            "UPDATE users SET time_remaining = ? WHERE username = ?",(value, 'employee'))
+        conn.commit()
+
+        conn.close()
+
+
     def reduce_time_remaining(value, time_remaining_var):
         if value <= 0:
             return
 
         value -= 1
         time_remaining_var.set(f"Time remaining: {value} seconds")
+        update_database(value)
         time_remaining_label.after(1000, reduce_time_remaining, value,
                                    time_remaining_var)
     reduce_time_remaining(time_remaining, time_remaining_var)
