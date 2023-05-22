@@ -8,13 +8,15 @@ import ctypes
 import pystray
 import os
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageTk, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from tkinter import filedialog
 
 SPI_SETMOUSESPEED = 0x0071
 SPIF_UPDATEINIFILE = 0x01
 SPIF_SENDCHANGE = 0x02
+
+
 
 
 def check_credentials(username, password):
@@ -43,20 +45,23 @@ def login(username_entry, password_entry, app):
     else:
         messagebox.showerror("Login failed", "Incorrect username or password")
 
-#Choose Color
+
+# Choose Color
 def color_change(window):
     color = colorchooser.askcolor()
     colorname = color[1]
     window.configure(background=colorname)
 
+
 # Set Backgrounds
 def browseFiles():
-    filename = filedialog.askopenfilename(initialdir=str(Path.home() / "Desktop"),
-                                          title="Select a File",
-                                          filetypes=(("Text files",
-                                                      "*.jpg;*.jpeg;*.png;*.gif"),
-                                                     ("all files",
-                                                      "*.*")))
+    filename = filedialog.askopenfilename(
+        initialdir=str(Path.home() / "Desktop"),
+        title="Select a File",
+        filetypes=(("Text files",
+                    "*.jpg;*.jpeg;*.png;*.gif"),
+                   ("all files",
+                    "*.*")))
     if filename and is_image_file(filename):
         set_desktop_background(filename)
 
@@ -87,13 +92,13 @@ def on_mouse_speed_change(value):
     set_mouse_speed(speed)
 
 
-def create_system_tray_icon( widget_manager_window, app):
+def create_system_tray_icon(widget_manager_window, app):
     # Set the font for the widget text
     font = ImageFont.truetype('arial.ttf', 12)
 
     # Set the widget text colors
     text_color = (255, 255, 255)
-    
+
     # Create the tray icon image
     image = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
@@ -102,30 +107,32 @@ def create_system_tray_icon( widget_manager_window, app):
     # Create the tray icon
     icon = pystray.Icon('widget_icon', image, 'Widgets')
     icon.visible = False
-    
+
     # Hide the window
     widget_manager_window.withdraw()
-    
+
     # Define a function to restore the window when the tray icon is clicked
     def restore_window(icon, item):
         # Show the window
-        widget_manager_window.deiconify() 
+        widget_manager_window.deiconify()
 
         # Remove the tray icon
         icon.stop()
 
-    #Deiconify the app (!bug runs without an icon)
+    # Deiconify the app (!bug runs without an icon)
     def exit_app():
         icon.stop()
         widget_manager_window.quit()
         app.quit()
 
     # Add a menu item to the tray icon to restore the window
-    icon.menu = pystray.Menu(pystray.MenuItem('Show Widget Manager', restore_window),
-                             pystray.MenuItem('Exit', exit_app))
-    
+    icon.menu = pystray.Menu(
+        pystray.MenuItem('Show Widget Manager', restore_window),
+        pystray.MenuItem('Exit', exit_app))
+
     # Run the system tray event loop
     icon.run()
+
 
 def on_window_drag(event, window):
     x, y = event.x_root, event.y_root
@@ -148,7 +155,7 @@ def show_main_window(user_id, time_remaining, app):
         app.deiconify()  # Show the login window
 
     def close_widget_manager_window():
-        create_system_tray_icon( widget_manager_window, app)
+        create_system_tray_icon(widget_manager_window, app)
 
     # Gui For themes
     def change_theme(theme):
@@ -179,8 +186,8 @@ def show_main_window(user_id, time_remaining, app):
     mouse_speed_label = ttk.Label(draggable_frame, text="Mouse Speed")
     mouse_speed_label.pack()
     mouse_speed_slider = ttk.Scale(draggable_frame, from_=1, to=20,
-                                  orient="horizontal", length=200,
-                                  command=on_mouse_speed_change)
+                                   orient="horizontal", length=200,
+                                   command=on_mouse_speed_change)
     mouse_speed_slider.set(10)
     mouse_speed_slider.pack()
 
@@ -210,15 +217,28 @@ def show_main_window(user_id, time_remaining, app):
     hardware_usage_window.overrideredirect(
         True)  # Remove window decorations and taskbar entry
 
+
+
     time_remaining_var = tk.StringVar()
-    time_remaining_var.set(f"Time remaining: {time_remaining} seconds")
+    time_remaining_var.set(f"Time remaining: {int(time_remaining)} seconds")
     time_remaining_label = tk.Label(hardware_usage_window,
                                     textvariable=time_remaining_var)
     time_remaining_label.pack()
 
+    def reduce_time_remaining(value, time_remaining_var):
+        if value <= 0:
+            return
+
+        value -= 1
+        time_remaining_var.set(f"Time remaining: {value} seconds")
+        time_remaining_label.after(1000, reduce_time_remaining, value,
+                                   time_remaining_var)
+    reduce_time_remaining(time_remaining, time_remaining_var)
+
+
     cpu_ram_gpu_usage_var = tk.StringVar()
     cpu_ram_gpu_usage_label = ttk.Label(hardware_usage_window,
-                                       textvariable=cpu_ram_gpu_usage_var)
+                                        textvariable=cpu_ram_gpu_usage_var)
     cpu_ram_gpu_usage_label.pack()
 
     # Make the Hardware Usage window draggable
@@ -238,7 +258,8 @@ def show_main_window(user_id, time_remaining, app):
     # Widget Manager window
     widget_manager_window = tk.Toplevel()
     widget_manager_window.title("Widget Manager")
-    widget_manager_window.protocol("WM_DELETE_WINDOW",close_widget_manager_window)
+    widget_manager_window.protocol("WM_DELETE_WINDOW",
+                                   close_widget_manager_window)
 
     hardware_usage_var = tk.BooleanVar()
     mouse_sensitivity_var = tk.BooleanVar()
@@ -264,35 +285,35 @@ def show_main_window(user_id, time_remaining, app):
             clock_usage.withdraw()
 
     hardware_usage_checkbutton = ttk.Checkbutton(widget_manager_window,
-                                                text="Hardware Usage",
-                                                variable=hardware_usage_var,
-                                                command=toggle_hardware_usage_window)
+                                                 text="Hardware Usage",
+                                                 variable=hardware_usage_var,
+                                                 command=toggle_hardware_usage_window)
     hardware_usage_checkbutton.grid(row=0, column=0)
 
     mouse_sensitivity_checkbutton = ttk.Checkbutton(widget_manager_window,
-                                                   text="Mouse Sensitivity",
-                                                   variable=mouse_sensitivity_var,
-                                                   command=toggle_mouse_sensitivity_window)
+                                                    text="Mouse Sensitivity",
+                                                    variable=mouse_sensitivity_var,
+                                                    command=toggle_mouse_sensitivity_window)
     mouse_sensitivity_checkbutton.grid(row=1, column=0)
 
     clock_checkbutton = ttk.Checkbutton(widget_manager_window,
-                                       text="Clock",
-                                       variable=clock_var,
-                                       command=toggle_clock)
+                                        text="Clock",
+                                        variable=clock_var,
+                                        command=toggle_clock)
     clock_checkbutton.grid(row=2, column=0)
 
     # Choose background
     background_button = ttk.Button(widget_manager_window,
-                                  text="Choose Your Desktop",
-                                  command=browseFiles
-                                  )
+                                   text="Choose Your Desktop",
+                                   command=browseFiles
+                                   )
     background_button.grid(row=3, column=0)
 
     # Change themes
     theme_label = ttk.Label(widget_manager_window, text="Select Theme:")
     theme_label.grid(row=0, column=1)
     theme_dropdown = ttk.OptionMenu(widget_manager_window, theme_variable,
-                                   *themes, command=change_theme)
+                                    *themes, command=change_theme)
     theme_dropdown.grid(row=1, column=1)
 
     style = ttk.Style()
@@ -303,7 +324,7 @@ def show_main_window(user_id, time_remaining, app):
         widget_manager_window.after(1000, update_clock)
 
     logout_button = ttk.Button(widget_manager_window, text="Logout",
-                              command=show_login_window)
+                               command=show_login_window)
     logout_button.grid(row=6, column=0)
 
     # Close all widget windows when the main application is closed
