@@ -1,6 +1,3 @@
-import tkinter as tk
-import sqlite3
-from tkinter import messagebox
 from Functions import *
 
 
@@ -26,4 +23,8 @@ login_button.grid(row=3, column=1, sticky="E")
 
 # Start the main event loop
 app.protocol("WM_DELETE_WINDOW", lambda: None)  # Disable the close button
+app.bind('<B1-Motion>',
+             lambda event: on_window_drag(event,
+                                          app))
+app.overrideredirect(True)
 app.mainloop()
