@@ -17,8 +17,6 @@ SPIF_UPDATEINIFILE = 0x01
 SPIF_SENDCHANGE = 0x02
 
 
-
-
 def check_credentials(username, password):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
@@ -56,7 +54,7 @@ def color_change(window):
 # Set Backgrounds
 def browseFiles():
     filename = filedialog.askopenfilename(
-        initialdir=str(Path.home() / "Desktop"),
+        initialdir=str(Path.home() / "Desktop/installed"),
         title="Select a File",
         filetypes=(("Text files",
                     "*.jpg;*.jpeg;*.png;*.gif"),
@@ -152,6 +150,8 @@ def show_main_window(user_id, time_remaining, app):
         mouse_sensitivity_window.destroy()
         hardware_usage_window.destroy()
         widget_manager_window.destroy()
+        app.protocol("WM_DELETE_WINDOW",
+                     do_nothing)  # Prevent closing with 'x' button
         app.deiconify()  # Show the login window
 
     def close_widget_manager_window():
@@ -217,8 +217,6 @@ def show_main_window(user_id, time_remaining, app):
     hardware_usage_window.overrideredirect(
         True)  # Remove window decorations and taskbar entry
 
-
-
     time_remaining_var = tk.StringVar()
     time_remaining_var.set(f"Time remaining: {int(time_remaining)} seconds")
     time_remaining_label = tk.Label(hardware_usage_window,
@@ -231,11 +229,11 @@ def show_main_window(user_id, time_remaining, app):
 
         # Perform the necessary database update based on your requirements
         cursor.execute(
-            "UPDATE users SET time_remaining = ? WHERE username = ?",(value, 'employee'))
+            "UPDATE users SET time_remaining = ? WHERE username = ?",
+            (value, 'employee'))
         conn.commit()
 
         conn.close()
-
 
     def reduce_time_remaining(value, time_remaining_var):
         if value <= 0:
@@ -246,8 +244,8 @@ def show_main_window(user_id, time_remaining, app):
         update_database(value)
         time_remaining_label.after(1000, reduce_time_remaining, value,
                                    time_remaining_var)
-    reduce_time_remaining(time_remaining, time_remaining_var)
 
+    reduce_time_remaining(time_remaining, time_remaining_var)
 
     cpu_ram_gpu_usage_var = tk.StringVar()
     cpu_ram_gpu_usage_label = ttk.Label(hardware_usage_window,
@@ -258,6 +256,7 @@ def show_main_window(user_id, time_remaining, app):
     hardware_usage_window.bind('<B1-Motion>',
                                lambda event: on_window_drag(event,
                                                             hardware_usage_window))
+
 
     def update_cpu_ram_usage():
         cpu_percent = psutil.cpu_percent()
